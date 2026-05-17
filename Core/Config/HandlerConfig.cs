@@ -6,5 +6,7 @@ public record HandlerConfig
     Guid Id,
     string Title,
     string Type,
-    int Rang
+    int Rang,
+    string[] AppliedMessageTypes,
+    string HandlerMarkers
 );

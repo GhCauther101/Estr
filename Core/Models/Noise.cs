@@ -1,6 +1,8 @@
 ﻿namespace Core.Models;
 
-public class Noise
+public interface IMessageNoise;
+
+public class Noise : IMessageNoise
 {
     public Guid Id { get; set; }
     public string Type { get; set; }

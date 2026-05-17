@@ -1,29 +1,46 @@
 ﻿using Core.Config;
+using Core.Helpers;
 using Core.Models;
+using System.Diagnostics.Contracts;
 using System.Threading.Channels;
 
 namespace Core.Handlers;
 
-public class Handler
+public interface IHandler
+{
+    public Guid Id { get; set; }
+
+    public string Type { get; set; }
+
+    public string Title { get; set; }
+    
+    public int Rang { get; set; }
+
+    public string[] ApplyiedMessageTypes { get; }
+
+    public string HandlerMarker { get; }
+
+    public Task Handle(IMessageNoise noise);
+}
+
+public class Handler : IHandler
 {
     private ChannelWriter<Noise> streamWriter;
     private ChannelReader<Noise> streamReader;
     private ChannelWriter<Notification> notificationWriter;
+    private ChannelReader<Notification> notificationReader;
 
-    public Handler(
-        HandlerConfig handlerConfig, 
-        ChannelWriter<Noise> streamWriter, 
-        ChannelReader<Noise> streamReader, 
-        ChannelWriter<Notification> notificationWriter
-    ){
+    private readonly string[] _appliedTypes = [];
+    private readonly string _handlerMarker;
+
+    public Handler(HandlerConfig handlerConfig){
         Id = handlerConfig.Id;
         Type = handlerConfig.Type;
         Rang = handlerConfig.Rang;
         Title = handlerConfig.Title;
 
-        this.streamWriter = streamWriter;
-        this.streamReader = streamReader;
-        this.notificationWriter = notificationWriter;
+        _appliedTypes = handlerConfig.AppliedMessageTypes;
+        _handlerMarker = handlerConfig.HandlerMarkers;
     }
 
     public Guid Id { get; set; }
@@ -34,26 +51,28 @@ public class Handler
 
     public string Title { get; set; }
 
-    public async Task Handle(CancellationToken cancellationToken)
+    public ChannelWriter<Noise> StreamWriter { get => streamWriter; init => streamWriter = value; }
+
+    public ChannelReader<Noise> StreamReader { get => streamReader; init => streamReader = value; }
+
+    public ChannelWriter<Notification> NotificationWriter { get => notificationWriter; init => notificationWriter = value; }
+
+    public ChannelReader<Notification> NotificationReader { get => notificationReader; init => notificationReader = value; }
+
+    public bool IsStreamable => streamWriter != null && streamReader != null && notificationWriter != null;
+
+    public string[] ApplyiedMessageTypes => _appliedTypes;
+    public string HandlerMarker => _handlerMarker;
+
+    public async Task Handle(IMessageNoise noise)
     {
-        while (cancellationToken.IsCancellationRequested) 
-        {
-            
-        }
+        if (!IsStreamable) return;
+
     }
 
-    public async Task Disable()
+    private async Task Process()
     {
 
     }
 
-    public async Task Process()
-    {
-
-    }
-
-    public async Task Pipe()
-    {
-
-    }
 }
